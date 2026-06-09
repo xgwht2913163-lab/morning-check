@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>幼儿园晨检快速记录器 | 健康守护每一天</title>
+    <!-- PWA 配置 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#f9bc7c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="晨检记录器">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #fef7e6;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Noto Sans', sans-serif;
+            padding: 20px 16px 40px;
+            color: #4a5b3a;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fffef9;
+            border-radius: 48px;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.05);
+            overflow: hidden;
+            padding: 24px 20px 32px;
+        }
+        h1 {
+            font-size: 1.9rem;
+            color: #e8a35e;
+            text-align: center;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .sub {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #c2a575;
+            border-bottom: 1px solid #f5e6d2;
+            padding-bottom: 14px;
+            margin-bottom: 24px;
+        }
+        /* 选项卡 */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            background: #fdf5e8;
+            padding: 6px;
+            border-radius: 60px;
+            margin-bottom: 28px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 12px 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #b68b54;
+        }
+        .tab-btn.active {
+            background: #f9bc7c;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+        /* 幼儿管理卡片 */
+        .manage-header {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .add-child {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: #fef6ea;
+            padding: 16px;
+            border-radius: 36px;
+            align-items: flex-end;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .input-group label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #c2863c;
+        }
+        input, select, textarea {
+            border: 1px solid #eedbc4;
+            border-radius: 60px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            background: white;
+            outline: none;
+        }
+        button {
+            background: #f0c48b;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button.primary {
+            background: #f9bc7c;
+            color: white;
+        }
+        .child-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .child-card {
+            background: #fffcf2;
+            border-radius: 28px;
+            padding: 10px 16px;
+            border: 1px solid #f0e0cb;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            width: calc(33% - 12px);
+            min-width: 180px;
+        }
+        .child-name {
+            font-weight: 800;
+            color: #b9662a;
+        }
+        .child-class {
+            font-size: 0.7rem;
+            background: #efe2cf;
+            padding: 2px 10px;
+            border-radius: 40px;
+        }
+        .del-btn {
+            background: none;
+            font-size: 1.2rem;
+            padding: 0 6px;
+            color: #c28148;
+        }
+        /* 晨检记录区 */
+        .quick-check {
+            background: #fefaf2;
+            border-radius: 40px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .select-child {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .check-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .check-item {
+            background: white;
+            border-radius: 28px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border: 1px solid #f2e3cf;
+        }
+        .check-label {
+            font-weight: 700;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .status-btns {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .status-btn {
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            background: #f9f2e4;
+            cursor: pointer;
+        }
+        .status-btn.active {
+            background: #f9bc7c;
+            color: white;
+        }
+        .temp-input {
+            width: 80px;
+            text-align: center;
+        }
+        .remark-area {
+            margin: 16px 0;
+        }
+        .btn-save {
+            width: 100%;
+            background: #f9bc7c;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+        }
+        /* 历史记录表格 */
+        .history-filter {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .history-list {
+            max-height: 420px;
+            overflow-y: auto;
+        }
+        .history-card {
+            background: #fefcf5;
+            border-radius: 28px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            border-left: 8px solid #f9bc7c;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .history-detail {
+            font-size: 0.85rem;
+            color: #8f734f;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .abnormal {
+            color: #e07c3c;
+            font-weight: bold;
+        }
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #c9af89;
+            margin-top: 28px;
+        }
+        @media (max-width: 700px) {
+            .child-card { width: calc(50% - 12px); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🧸 幼儿园晨检快速记录器</h1>
+    <div class="sub">健康晨检 · 安心每一天</div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="manage">👧 幼儿管理</button>
+        <button class="tab-btn" data-tab="check">📋 今日晨检</button>
+        <button class="tab-btn" data-tab="history">📜 晨检记录</button>
+    </div>
+
+    <!-- 幼儿管理面板 -->
+    <div id="manageTab" class="tab-pane active">
+        <div class="manage-header">
+            <div class="add-child">
+                <div class="input-group">
+                    <label>姓名</label>
+                    <input type="text" id="childName" placeholder="例：张明熙">
+                </div>
+                <div class="input-group">
+                    <label>班级</label>
+                    <input type="text" id="childClass" placeholder="例：小一班">
+                </div>
+                <button id="addChildBtn" class="primary">➕ 添加幼儿</button>
+            </div>
+        </div>
+        <div class="child-list" id="childListContainer"></div>
+        <div class="sub" style="margin-top:20px;">💡 提示：删除幼儿会同时清除该幼儿的所有晨检记录</div>
+    </div>
+
+    <!-- 今日晨检面板 -->
+    <div id="checkTab" class="tab-pane">
+        <div class="quick-check">
+            <div class="select-child">
+                <select id="checkChildSelect" style="flex:2">
+                    <option value="">-- 选择幼儿 --</option>
+                </select>
+                <button id="refreshChildSelect" style="background:#e9dbc9;">🔄</button>
+            </div>
+            <div class="check-items">
+                <div class="check-item">
+                    <span class="check-label">🌡️ 体温(℃)</span>
+                    <input type="number" step="0.1" id="tempValue" class="temp-input" placeholder="36.5">
+                </div>
+                <div class="check-item">
+                    <span class="check-label">👄 口腔</span>
+                    <div class="status-btns" data-field="mouth">
+                        <span data-val="正常" class="status-btn">正常</span>
+                        <span data-val="异常" class="status-btn">异常</span>
+                    </div>
+                </div>
+                <div class="check-item">
+                    <span class="check-label">✋ 手部</span>
+                    <div class="status-btns" data-field="hand">
+                        <span data-val="正常" class="status-btn">正常</span>
+                        <span data-val="异常" class="status-btn">异常</span>
+                    </div>
+                </div>
+                <div class="check-item">
+                    <span class="check-label">😊 精神状态</span>
+                    <div class="status-btns" data-field="spirit">
+                        <span data-val="良好" class="status-btn">良好</span>
+                        <span data-val="萎靡" class="status-btn">萎靡</span>
+                    </div>
+                </div>
+            </div>
+            <div class="remark-area">
+                <textarea id="checkRemark" rows="2" placeholder="备注 (例如: 咳嗽、皮疹等)" style="width:100%; border-radius: 28px;"></textarea>
+            </div>
+            <button id="saveCheckBtn" class="btn-save">✅ 保存今日晨检</button>
+            <div style="font-size:0.7rem; margin-top:12px; color:#c5a26b;">* 每日每位幼儿只能记录一次，重复保存会覆盖当天记录。</div>
+        </div>
+    </div>
+
+    <!-- 历史记录面板 -->
+    <div id="historyTab" class="tab-pane">
+        <div class="history-filter">
+            <input type="date" id="historyDate" style="flex:1">
+            <select id="historyChildSelect" style="flex:2">
+                <option value="">全部幼儿</option>
+            </select>
+            <button id="searchHistoryBtn" class="primary">🔍 查询</button>
+            <button id="exportHistoryBtn" style="background:#e3d3bd;">📎 导出CSV</button>
+        </div>
+        <div id="historyList" class="history-list"></div>
+    </div>
+    <footer>数据保存在您的浏览器中，晨检记录每日可覆盖更新，呵护幼儿健康。</footer>
+</div>
+
+<script>
+    // ---------- 存储 KEY ----------
+    const STORAGE_CHILDREN = "kindergarten_children";
+    const STORAGE_CHECKS = "kindergarten_daily_checks";
+
+    // 全局数据
+    let children = [];       // { id, name, class }
+    let checks = [];         // { id, childId, date, temp, mouth, hand, spirit, remark }
+
+    // 辅助函数
+    function getTodayStr() {
+        const today = new Date();
+        return `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    }
+
+    // 加载数据
+    function loadData() {
+        const storedChildren = localStorage.getItem(STORAGE_CHILDREN);
+        if (storedChildren) {
+            try { children = JSON.parse(storedChildren); } catch(e){ children = []; }
+        } else {
+            // 示范数据
+            children = [
+                { id: 1, name: "李小乐", class: "小一班" },
+                { id: 2, name: "王朵朵", class: "小一班" },
+                { id: 3, name: "赵子琪", class: "小二班" }
+            ];
+        }
+        const storedChecks = localStorage.getItem(STORAGE_CHECKS);
+        if (storedChecks) {
+            try { checks = JSON.parse(storedChecks); } catch(e){ checks = []; }
+        } else {
+            checks = [];
+        }
+    }
+
+    function saveChildren() {
+        localStorage.setItem(STORAGE_CHILDREN, JSON.stringify(children));
+    }
+    function saveChecks() {
+        localStorage.setItem(STORAGE_CHECKS, JSON.stringify(checks));
+    }
+
+    // 渲染幼儿管理列表
+    function renderChildrenList() {
+        const container = document.getElementById('childListContainer');
+        if (!container) return;
+        if (children.length === 0) {
+            container.innerHTML = '<div style="padding:20px; text-align:center;">暂无幼儿，请先添加</div>';
+            return;
+        }
+        let html = '';
+        children.forEach(child => {
+            html += `
+                <div class="child-card" data-id="${child.id}">
+                    <div><span class="child-name">${escapeHtml(child.name)}</span> <span class="child-class">${escapeHtml(child.class)}</span></div>
+                    <button class="del-btn" data-id="${child.id}">🗑️</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        // 删除按钮事件
+        document.querySelectorAll('.del-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(btn.dataset.id);
+                if (confirm(`确定删除该幼儿吗？同时会删除所有晨检记录。`)) {
+                    deleteChildById(id);
+                }
+                e.stopPropagation();
+            });
+        });
+    }
+
+    function deleteChildById(id) {
+        children = children.filter(c => c.id !== id);
+        checks = checks.filter(c => c.childId !== id);
+        saveChildren();
+        saveChecks();
+        renderChildrenList();
+        refreshChildSelects();
+        const checkSelect = document.getElementById('checkChildSelect');
+        if (checkSelect && checkSelect.value == id) checkSelect.value = "";
+        renderHistory();
+    }
+
+    function refreshChildSelects() {
+        const checkSelect = document.getElementById('checkChildSelect');
+        const historySelect = document.getElementById('historyChildSelect');
+        const createOptionHtml = (child) => `<option value="${child.id}">${escapeHtml(child.name)} (${escapeHtml(child.class)})</option>`;
+        let allHtml = '<option value="">-- 选择幼儿 --</option>';
+        children.forEach(c => { allHtml += createOptionHtml(c); });
+        if (checkSelect) checkSelect.innerHTML = allHtml;
+        if (historySelect) {
+            let histHtml = '<option value="">全部幼儿</option>';
+            children.forEach(c => { histHtml += createOptionHtml(c); });
+            historySelect.innerHTML = histHtml;
+        }
+    }
+
+    function addChild(name, className) {
+        if (!name.trim()) { alert("请填写姓名"); return false; }
+        const newId = Date.now();
+        children.push({ id: newId, name: name.trim(), class: className.trim() || "未分班" });
+        saveChildren();
+        renderChildrenList();
+        refreshChildSelects();
+        return true;
+    }
+
+    function saveMorningCheck() {
+        const childId = parseInt(document.getElementById('checkChildSelect').value);
+        if (!childId) { alert("请选择幼儿"); return; }
+        const tempRaw = document.getElementById('tempValue').value;
+        let temp = null;
+        if (tempRaw !== "") {
+            temp = parseFloat(tempRaw);
+            if (isNaN(temp)) { alert("体温请输入有效数字"); return; }
+        }
+        const getSelected = (field) => {
+            const btns = document.querySelectorAll(`.status-btns[data-field="${field}"] .status-btn`);
+            let active = null;
+            btns.forEach(btn => { if (btn.classList.contains('active')) active = btn.dataset.val; });
+            return active || "正常";
+        };
+        const mouth = getSelected('mouth');
+        const hand = getSelected('hand');
+        const spirit = getSelected('spirit');
+        const remark = document.getElementById('checkRemark').value.trim();
+        const today = getTodayStr();
+        const existingIndex = checks.findIndex(c => c.childId === childId && c.date === today);
+        const record = {
+            id: existingIndex !== -1 ? checks[existingIndex].id : Date.now(),
+            childId: childId,
+            date: today,
+            temp: temp,
+            mouth: mouth,
+            hand: hand,
+            spirit: spirit,
+            remark: remark
+        };
+        if (existingIndex !== -1) {
+            checks[existingIndex] = record;
+        } else {
+            checks.push(record);
+        }
+        saveChecks();
+        alert(`✅ 已为 ${children.find(c=>c.id===childId)?.name} 保存${today}晨检记录`);
+        document.getElementById('tempValue').value = '';
+        document.getElementById('checkRemark').value = '';
+        resetStatusButtons();
+        if (document.getElementById('historyTab').classList.contains('active')) renderHistory();
+    }
+
+    function resetStatusButtons() {
+        const fields = ['mouth', 'hand', 'spirit'];
+        fields.forEach(field => {
+            const btns = document.querySelectorAll(`.status-btns[data-field="${field}"] .status-btn`);
+            btns.forEach(btn => {
+                if (btn.dataset.val === "正常" || btn.dataset.val === "良好") {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        });
+    }
+
+    function renderHistory() {
+        const dateInput = document.getElementById('historyDate').value;
+        const selectedChildId = document.getElementById('historyChildSelect').value;
+        let filtered = [...checks];
+        if (dateInput) {
+            filtered = filtered.filter(c => c.date === dateInput);
+        }
+        if (selectedChildId) {
+            filtered = filtered.filter(c => c.childId === parseInt(selectedChildId));
+        }
+        filtered.sort((a,b) => b.date.localeCompare(a.date));
+        const container = document.getElementById('historyList');
+        if (!container) return;
+        if (filtered.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:40px;">暂无晨检记录</div>';
+            return;
+        }
+        let html = '';
+        for (let rec of filtered) {
+            const child = children.find(c => c.id === rec.childId);
+            const childName = child ? `${child.name} (${child.class})` : `未知幼儿(ID:${rec.childId})`;
+            const abnormalItems = [];
+            if (rec.temp && (rec.temp < 36.0 || rec.temp > 37.3)) abnormalItems.push(`体温${rec.temp}℃`);
+            if (rec.mouth !== "正常") abnormalItems.push(`口腔:${rec.mouth}`);
+            if (rec.hand !== "正常") abnormalItems.push(`手部:${rec.hand}`);
+            if (rec.spirit !== "良好") abnormalItems.push(`精神:${rec.spirit}`);
+            if (rec.remark) abnormalItems.push(`备注:${rec.remark}`);
+            const abnormalHtml = abnormalItems.length ? `<span class="abnormal">⚠️ ${abnormalItems.join('; ')}</span>` : '<span>✅ 全部正常</span>';
+            html += `
+                <div class="history-card">
+                    <div class="history-header">
+                        <strong>${escapeHtml(childName)}</strong>
+                        <span>📅 ${rec.date}</span>
+                    </div>
+                    <div class="history-detail">
+                        <span>🌡️ 体温: ${rec.temp ? rec.temp + '℃' : '未测'}</span>
+                        <span>👄 口腔: ${rec.mouth}</span>
+                        <span>✋ 手部: ${rec.hand}</span>
+                        <span>😊 精神: ${rec.spirit}</span>
+                    </div>
+                    <div style="margin-top:8px;">${abnormalHtml}</div>
+                    ${rec.remark ? `<div style="font-size:0.8rem; color:#aa7942;">📝 备注: ${escapeHtml(rec.remark)}</div>` : ''}
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    function exportHistoryCSV() {
+        const dateInput = document.getElementById('historyDate').value;
+        const selectedChildId = document.getElementById('historyChildSelect').value;
+        let filtered = [...checks];
+        if (dateInput) filtered = filtered.filter(c => c.date === dateInput);
+        if (selectedChildId) filtered = filtered.filter(c => c.childId === parseInt(selectedChildId));
+        if (filtered.length === 0) { alert("没有可导出的记录"); return; }
+        const headers = ["日期","幼儿姓名","班级","体温","口腔","手部","精神状态","备注"];
+        const rows = filtered.map(rec => {
+            const child = children.find(c => c.id === rec.childId);
+            const name = child ? child.name : "未知";
+            const cls = child ? child.class : "未知";
+            return [rec.date, name, cls, rec.temp !== null ? rec.temp : "", rec.mouth, rec.hand, rec.spirit, rec.remark || ""];
+        });
+        let csvContent = headers.join(",") + "\n" + rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+        const blob = new Blob(["\uFEFF" + csvContent], {type: "text/csv;charset=utf-8;"});
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute("download", `晨检记录_${dateInput || "all"}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    function bindStatusButtons() {
+        const btns = document.querySelectorAll('.status-btn');
+        btns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const parent = btn.parentElement;
+                const siblings = parent.querySelectorAll('.status-btn');
+                siblings.forEach(sib => sib.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+        resetStatusButtons();
+    }
+
+    function init() {
+        loadData();
+        renderChildrenList();
+        refreshChildSelects();
+        bindStatusButtons();
+        document.getElementById('addChildBtn').addEventListener('click', () => {
+            const name = document.getElementById('childName').value;
+            const className = document.getElementById('childClass').value;
+            if (addChild(name, className)) {
+                document.getElementById('childName').value = '';
+                document.getElementById('childClass').value = '';
+            }
+        });
+        document.getElementById('saveCheckBtn').addEventListener('click', saveMorningCheck);
+        document.getElementById('refreshChildSelect').addEventListener('click', () => refreshChildSelects());
+        document.getElementById('searchHistoryBtn').addEventListener('click', renderHistory);
+        document.getElementById('exportHistoryBtn').addEventListener('click', exportHistoryCSV);
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const panes = document.querySelectorAll('.tab-pane');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                panes.forEach(pane => pane.classList.remove('active'));
+                if (tabId === 'manage') document.getElementById('manageTab').classList.add('active');
+                if (tabId === 'check') {
+                    document.getElementById('checkTab').classList.add('active');
+                    refreshChildSelects();
+                }
+                if (tabId === 'history') {
+                    document.getElementById('historyTab').classList.add('active');
+                    renderHistory();
+                }
+            });
+        });
+        const todayInput = document.getElementById('historyDate');
+        if (todayInput) todayInput.value = getTodayStr();
+    }
+
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+    init();
+
+    // PWA Service Worker 注册
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').then(reg => {
+                console.log('Service Worker 注册成功', reg);
+            }).catch(err => {
+                console.log('Service Worker 注册失败', err);
+            });
+        });
+    }
+</script>
+</body>
+</html>

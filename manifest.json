@@ -1,0 +1,22 @@
+{
+  "name": "幼儿园晨检记录器",
+  "short_name": "晨检记录",
+  "description": "快速记录幼儿每日晨检情况，守护健康",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#f9bc7c",
+  "background_color": "#fef7e6",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
